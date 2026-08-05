@@ -3,37 +3,56 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Search, Heart, Train } from 'lucide-react';
+import { Home, Search, Heart } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { useFavoritesStore } from '@/store/favorites';
+import { useSearchStore } from '@/store/search';
 
 const NAV_ITEMS = [
-  { href: '/', label: 'Home', icon: Home },
-  { href: '/?search=1', label: 'Search', icon: Search },
-  { href: '/favorites', label: 'Favorites', icon: Heart },
+  { href: '/', label: 'Home', icon: Home, isSearch: false },
+  { href: '/?search=1', label: 'Search', icon: Search, isSearch: true },
+  { href: '/favorites', label: 'Favorites', icon: Heart, isSearch: false },
 ];
+
+const AUTH_ROUTES = ['/login', '/register', '/forgot-password', '/reset-password'];
 
 export function BottomNav() {
   const pathname = usePathname();
   const { favorites } = useFavoritesStore();
+  const { isSearchOpen, openSearch } = useSearchStore();
+
+  if (AUTH_ROUTES.includes(pathname)) {
+    return null;
+  }
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden">
       <div className="glass-panel mx-3 mb-3 rounded-2xl border border-slate-200/60 dark:border-slate-800/60 shadow-glass overflow-hidden">
         <div className="flex items-center justify-around px-2 py-2">
-          {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
-            const isActive =
-              href === '/' ? pathname === '/' : pathname.startsWith(href.split('?')[0]);
+          {NAV_ITEMS.map(({ href, label, icon: Icon, isSearch }) => {
             const isFavoritesTab = href === '/favorites';
+            const isActive = isSearch
+              ? isSearchOpen
+              : href === '/'
+              ? pathname === '/' && !isSearchOpen
+              : pathname.startsWith(href);
+
+            const handleClick = (e: React.MouseEvent) => {
+              if (isSearch) {
+                e.preventDefault();
+                openSearch();
+              }
+            };
 
             return (
               <Link
                 key={href}
-                href={href.split('?')[0]}
+                href={isSearch ? '#' : href}
+                onClick={handleClick}
                 className={cn(
-                  'relative flex flex-col items-center gap-0.5 rounded-xl px-4 py-2 transition-all duration-200',
+                  'relative flex flex-col items-center gap-0.5 rounded-xl px-4 py-2 transition-all duration-200 cursor-pointer',
                   isActive
-                    ? 'text-rail-blue'
+                    ? 'text-rail-blue font-bold'
                     : 'text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
                 )}
               >

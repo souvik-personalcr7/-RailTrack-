@@ -4,6 +4,9 @@ import '@/styles/globals.css';
 import QueryProvider from '@/providers/query-provider';
 import { Navbar } from '@/components/layout/Navbar';
 import { BottomNav } from '@/components/layout/BottomNav';
+import { Footer } from '@/components/layout/Footer';
+import { MobileSearchModal } from '@/components/search/MobileSearchModal';
+import { AuthPromptModal } from '@/components/auth/AuthPromptModal';
 
 const inter = Inter({ subsets: ['latin'], display: 'swap' });
 
@@ -64,10 +67,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       >
         <QueryProvider>
           <Navbar />
-          <main className="flex-1 px-4 py-6 max-w-7xl mx-auto w-full pb-24 md:pb-6">
+          <main className="flex-1 px-4 py-6 max-w-7xl mx-auto w-full">
             {children}
           </main>
+          <Footer />
           <BottomNav />
+          <MobileSearchModal />
+          <AuthPromptModal />
         </QueryProvider>
       </body>
     </html>

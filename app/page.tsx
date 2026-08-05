@@ -24,7 +24,7 @@ function useDebounce<T>(value: T, delay: number): T {
 
 export default function HomePage() {
   const router = useRouter();
-  const { recentSearches, addRecentSearch, clearRecentSearches } = useSearchStore();
+  const { recentSearches, addRecentSearch, clearRecentSearches, openSearch } = useSearchStore();
   const [inputValue, setInputValue] = useState('');
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const debouncedQuery = useDebounce(inputValue, 350);
@@ -38,13 +38,14 @@ export default function HomePage() {
     const handler = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
         e.preventDefault();
+        openSearch();
         inputRef.current?.focus();
         setIsSearchOpen(true);
       }
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, []);
+  }, [openSearch]);
 
   // Close on outside click
   useEffect(() => {

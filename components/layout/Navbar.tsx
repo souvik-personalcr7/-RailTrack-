@@ -2,14 +2,33 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Train, Heart, Sun, Moon } from 'lucide-react';
-import { usePathname } from 'next/navigation';
+import { Train, Heart, Sun, Moon, User as UserIcon, LogOut } from 'lucide-react';
+import { usePathname, useRouter } from 'next/navigation';
 import { cn } from '@/utils/cn';
 import { useFavoritesStore } from '@/store/favorites';
+import { useAuthStore } from '@/store/auth';
+import { useUser, useLogout } from '@/hooks/useAuth';
+
+const AUTH_ROUTES = ['/login', '/register', '/forgot-password', '/reset-password'];
 
 export function Navbar() {
+  const router = useRouter();
   const pathname = usePathname();
   const { favorites } = useFavoritesStore();
+  const { user } = useAuthStore();
+  const logoutMutation = useLogout();
+  useUser(); // Triggers session fetch on mount
+
+  const handleLogout = async () => {
+    try {
+      await logoutMutation.mutateAsync();
+    } catch (e) {
+      console.error('Logout error:', e);
+    } finally {
+      window.location.href = '/login';
+    }
+  };
+
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
   const [mounted, setMounted] = useState(false);
 
@@ -35,6 +54,10 @@ export function Navbar() {
     }
   }, []);
 
+  if (AUTH_ROUTES.includes(pathname)) {
+    return null;
+  }
+
   const toggleTheme = () => {
     const nextTheme = theme === 'dark' ? 'light' : 'dark';
     setTheme(nextTheme);
@@ -47,7 +70,6 @@ export function Navbar() {
   };
 
   const links = [
-    // { href: '/', label: 'Search', icon: Search, exact: true },
     { href: '/favorites', label: 'Favorites', icon: Heart, exact: false },
   ];
 
@@ -69,15 +91,15 @@ export function Navbar() {
           </div>
         </Link>
 
-        {/* Navigation Links & Theme Toggle */}
+        {/* Navigation Links, Theme Toggle & Auth */}
         <nav className="flex items-center gap-1 sm:gap-2">
-          {/* Theme Toggle (Sun/Moon) placed on the left side of Favorites */}
+          {/* Theme Toggle (Sun/Moon) */}
           <button
             type="button"
             onClick={toggleTheme}
             aria-label={theme === 'dark' ? 'Switch to Day mode' : 'Switch to Dark mode'}
             title={theme === 'dark' ? 'Switch to Day mode' : 'Switch to Dark mode'}
-            className="relative flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800 transition-all cursor-pointer"
+            className="relative flex items-center gap-1.5 rounded-xl px-1.5 sm:px-3 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800 transition-all cursor-pointer"
           >
             {mounted && theme === 'dark' ? (
               <>
@@ -101,7 +123,7 @@ export function Navbar() {
                 key={href}
                 href={href}
                 className={cn(
-                  'relative flex items-center gap-2 rounded-xl px-3.5 py-2 text-xs font-semibold transition-all',
+                  'relative flex items-center gap-2 rounded-xl px-2 sm:px-3.5 py-2 text-xs font-semibold transition-all',
                   isActive
                     ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-sm'
                     : 'text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800'
@@ -117,6 +139,37 @@ export function Navbar() {
               </Link>
             );
           })}
+
+          {/* User Auth Section */}
+          {user ? (
+            <div className="flex items-center gap-1 sm:gap-2">
+              <div className="flex items-center gap-1.5 rounded-xl bg-rail-blue/10 px-3 py-2 text-xs font-bold text-rail-blue border border-rail-blue/20">
+                <UserIcon className="h-3.5 w-3.5" />
+                <span className="max-w-[100px] truncate">{user.fullName.split(' ')[0]}</span>
+              </div>
+              <button
+                type="button"
+                onClick={handleLogout}
+                disabled={logoutMutation.isPending}
+                title="Sign Out"
+                className="flex items-center gap-1 rounded-xl px-3 py-2 text-xs font-semibold text-rose-500 hover:bg-rose-500/10 transition-all cursor-pointer"
+              >
+                <LogOut className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">Logout</span>
+              </button>
+            </div>
+          ) : (
+            <Link
+              href="/login"
+              className={cn(
+                'flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-xs font-bold bg-rail-blue text-white shadow-glow transition-all hover:bg-sky-600 active:scale-95',
+                pathname === '/login' && 'ring-2 ring-rail-blue'
+              )}
+            >
+              <UserIcon className="h-3.5 w-3.5" />
+              <span>Sign In</span>
+            </Link>
+          )}
         </nav>
       </div>
     </header>

@@ -4,6 +4,7 @@ import React from 'react';
 import { Heart } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useFavoritesStore } from '@/store/favorites';
+import { useAuthStore } from '@/store/auth';
 import { SearchResult } from '@/types/train';
 import { cn } from '@/utils/cn';
 
@@ -15,6 +16,7 @@ interface FavoriteButtonProps {
 
 export function FavoriteButton({ train, className, size = 'md' }: FavoriteButtonProps) {
   const { isFavorite, toggleFavorite } = useFavoritesStore();
+  const { user, openAuthModal } = useAuthStore();
   const isFav = isFavorite(train.id || train.number);
 
   return (
@@ -22,6 +24,9 @@ export function FavoriteButton({ train, className, size = 'md' }: FavoriteButton
       onClick={(e) => {
         e.preventDefault();
         e.stopPropagation();
+        if (!user) {
+          openAuthModal();
+        }
         toggleFavorite(train);
       }}
       title={isFav ? 'Remove from favorites' : 'Add to favorites'}
