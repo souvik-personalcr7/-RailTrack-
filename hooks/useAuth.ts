@@ -6,9 +6,9 @@ async function fetchMe() {
   const res = await fetch('/api/auth/me');
   const data = await res.json();
   if (!res.ok || !data.success) {
-    throw new Error(data.message || 'Not authenticated');
+    return null;
   }
-  return data.user as UserProfile;
+  return (data.user as UserProfile) || null;
 }
 
 export function useUser() {
@@ -26,7 +26,7 @@ export function useUser() {
       setLoading(true);
     } else if (query.data) {
       setUser(query.data);
-    } else if (query.isError) {
+    } else if (query.data === null || query.isError) {
       clearUser();
     }
   }, [query.data, query.isError, query.isLoading, setUser, clearUser, setLoading]);

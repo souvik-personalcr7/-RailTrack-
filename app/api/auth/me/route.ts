@@ -4,6 +4,8 @@ import connectToDatabase from '@/lib/db';
 import User from '@/models/User';
 import { verifyToken } from '@/lib/jwt';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
   try {
     const cookieStore = cookies();
@@ -11,16 +13,16 @@ export async function GET() {
 
     if (!token) {
       return NextResponse.json(
-        { success: false, user: null, message: 'Not authenticated.' },
-        { status: 401 }
+        { success: true, user: null, message: 'Not authenticated.' },
+        { status: 200 }
       );
     }
 
     const decoded = verifyToken(token);
     if (!decoded) {
       const response = NextResponse.json(
-        { success: false, user: null, message: 'Invalid or expired session token.' },
-        { status: 401 }
+        { success: true, user: null, message: 'Invalid or expired session token.' },
+        { status: 200 }
       );
       response.cookies.set({
         name: 'token',
@@ -40,8 +42,8 @@ export async function GET() {
     const user = await User.findById(decoded.userId).select('-password');
     if (!user) {
       const response = NextResponse.json(
-        { success: false, user: null, message: 'User account no longer exists.' },
-        { status: 404 }
+        { success: true, user: null, message: 'User account no longer exists.' },
+        { status: 200 }
       );
       response.cookies.set({
         name: 'token',
