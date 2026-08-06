@@ -41,7 +41,11 @@ export async function GET(
       );
     }
 
-    const routeCoords = journey.routeGeometry || journey.stations.map((s) => [s.lng, s.lat]);
+    const routeCoords =
+      journey.routeGeometry ||
+      journey.stations
+        .filter((s): s is typeof s & { lat: number; lng: number } => Boolean(s.lat && s.lng))
+        .map((s) => [s.lng, s.lat]);
     const elevationProfile = await getElevationProfile(routeCoords, journey.totalDistanceKm);
 
     const highestElevationM = Math.max(...elevationProfile.map((e) => e.elevationM), 520);

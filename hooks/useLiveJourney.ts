@@ -23,6 +23,7 @@ export function useLiveJourney(trainId: string) {
     refetchOnReconnect: false,
     refetchOnMount: false,
     staleTime: Infinity,
+    gcTime: Infinity,
   });
 }
 

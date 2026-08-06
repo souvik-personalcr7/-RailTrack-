@@ -12,7 +12,7 @@ interface JourneyState {
 
 export const useJourneyStore = create<JourneyState>((set) => ({
   activeTrainId: null,
-  autoRefresh: true,
+  autoRefresh: false,
   followTrainMode: true,
   setActiveTrainId: (id) => set({ activeTrainId: id }),
   toggleAutoRefresh: () => set((state) => ({ autoRefresh: !state.autoRefresh })),

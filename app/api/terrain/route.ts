@@ -45,10 +45,12 @@ export async function GET(request: NextRequest) {
 
     // Compute rough distance from first station for each feature
     const origin = journey.stations[0];
-    if (origin?.lat && origin?.lng) {
+    if (typeof origin?.lat === 'number' && typeof origin?.lng === 'number') {
+      const origLat = origin.lat;
+      const origLng = origin.lng;
       features.forEach((f) => {
-        const dlat = f.lat - origin.lat;
-        const dlng = f.lng - origin.lng;
+        const dlat = f.lat - origLat;
+        const dlng = f.lng - origLng;
         f.distanceKm = Math.round(Math.sqrt(dlat * dlat + dlng * dlng) * 111);
       });
     }

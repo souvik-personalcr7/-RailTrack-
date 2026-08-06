@@ -1,5 +1,5 @@
-import React from 'react';
-import { Cloud, Sun, CloudRain, Wind, Droplets, Thermometer } from 'lucide-react';
+import React, { memo } from 'react';
+import { Cloud, Sun, CloudRain, Wind, Droplets } from 'lucide-react';
 import { WeatherData } from '@/lib/openweather';
 import { cn } from '@/utils/cn';
 
@@ -9,7 +9,7 @@ interface WeatherCardProps {
   className?: string;
 }
 
-export function WeatherCard({ label, weather, className }: WeatherCardProps) {
+export const WeatherCard = memo(function WeatherCard({ label, weather, className }: WeatherCardProps) {
   const isRain = weather.condition.toLowerCase().includes('rain');
   const isSun = weather.condition.toLowerCase().includes('clear');
 
@@ -57,4 +57,5 @@ export function WeatherCard({ label, weather, className }: WeatherCardProps) {
       </div>
     </div>
   );
-}
+});
+

@@ -1,58 +1,20 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
-import { CloudSun } from 'lucide-react';
+import React, { memo } from 'react';
+import { CloudSun, RefreshCw } from 'lucide-react';
 import { LiveJourney } from '@/types/train';
 import { WeatherCard } from './WeatherCard';
-import { WeatherData } from '@/lib/openweather';
+import { useWeather } from './useWeather';
+import { cn } from '@/utils/cn';
 
 interface WeatherPanelProps {
   journey: LiveJourney;
 }
 
-export function WeatherPanel({ journey }: WeatherPanelProps) {
-  const [weatherData, setWeatherData] = useState<{
-    current?: WeatherData;
-    next?: WeatherData;
-    dest?: WeatherData;
-  }>({});
-  const [loading, setLoading] = useState(true);
+export const WeatherPanel = memo(function WeatherPanel({ journey }: WeatherPanelProps) {
+  const { weatherData, isLoading, isFetching, refetch } = useWeather(journey);
 
-  useEffect(() => {
-    async function loadWeather() {
-      setLoading(true);
-      try {
-        const currSt = journey.currentStation || journey.previousStation || journey.stations[0];
-        const nextSt = journey.nextStation || journey.stations[journey.stations.length - 1];
-        const destSt = journey.stations[journey.stations.length - 1];
-
-        const [currRes, nextRes, destRes] = await Promise.all([
-          fetch(`/api/weather?lat=${currSt.lat}&lng=${currSt.lng}&name=${encodeURIComponent(currSt.name)}&code=${currSt.code}`),
-          fetch(`/api/weather?lat=${nextSt.lat}&lng=${nextSt.lng}&name=${encodeURIComponent(nextSt.name)}&code=${nextSt.code}`),
-          fetch(`/api/weather?lat=${destSt.lat}&lng=${destSt.lng}&name=${encodeURIComponent(destSt.name)}&code=${destSt.code}`),
-        ]);
-
-        const [currJson, nextJson, destJson] = await Promise.all([
-          currRes.json(),
-          nextRes.json(),
-          destRes.json(),
-        ]);
-
-        setWeatherData({
-          current: currJson.data,
-          next: nextJson.data,
-          dest: destJson.data,
-        });
-      } catch (e) {
-        console.warn('Weather panel loading failed', e);
-      } finally {
-        setLoading(false);
-      }
-    }
-    loadWeather();
-  }, [journey]);
-
-  if (loading || !weatherData.current) {
+  if (isLoading && !weatherData.current) {
     return (
       <div className="glass-panel rounded-3xl p-6 text-center text-xs text-slate-400">
         Loading live OpenWeather intelligence...
@@ -62,9 +24,21 @@ export function WeatherPanel({ journey }: WeatherPanelProps) {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-2 font-bold text-lg text-slate-900 dark:text-white">
-        <CloudSun className="h-5 w-5 text-amber-500" />
-        <span>Smart Travel Companion Weather</span>
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex items-center gap-2 font-bold text-sm sm:text-base md:text-lg text-slate-900 dark:text-white whitespace-nowrap min-w-0">
+          <CloudSun className="h-5 w-5 shrink-0 text-amber-500" />
+          <span className="whitespace-nowrap">Smart Travel Companion Weather</span>
+        </div>
+        <button
+          type="button"
+          onClick={() => refetch()}
+          disabled={isFetching}
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white glass-panel rounded-xl transition-all disabled:opacity-50"
+          title="Refresh Weather Data"
+        >
+          <RefreshCw className={cn('h-3.5 w-3.5', isFetching && 'animate-spin text-amber-500')} />
+          {/* <span>{isFetching ? 'Refreshing...' : 'Refresh'}</span> */}
+        </button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -80,4 +54,5 @@ export function WeatherPanel({ journey }: WeatherPanelProps) {
       </div>
     </div>
   );
-}
+});
+

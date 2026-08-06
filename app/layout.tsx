@@ -68,7 +68,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       >
         <QueryProvider>
           <Navbar />
-          <main className="flex-1 px-4 py-6 max-w-7xl mx-auto w-full">
+          <main className="flex-1 px-4 pt-2 sm:pt-6 pb-6 max-w-7xl mx-auto w-full">
             {children}
           </main>
           <Footer />

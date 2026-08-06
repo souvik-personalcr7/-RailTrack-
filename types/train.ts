@@ -1,8 +1,8 @@
 export interface Station {
   code: string;
   name: string;
-  lat: number;
-  lng: number;
+  lat?: number;
+  lng?: number;
   scheduledArrival: string;
   scheduledDeparture: string;
   actualArrival?: string;

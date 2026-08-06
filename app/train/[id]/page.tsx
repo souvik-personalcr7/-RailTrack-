@@ -28,7 +28,7 @@ const MapView = dynamic(() => import('@/features/maps/MapView'), {
 const TABS = [
   { id: 'map', label: 'Live Map', icon: MapPin },
   { id: 'weather', label: 'Weather', icon: CloudSun },
-  { id: 'analytics', label: 'Terrain & Analytics', icon: Mountain },
+  { id: 'analytics', label: 'Terrain ', icon: Mountain },
 ] as const;
 
 type TabId = typeof TABS[number]['id'];
@@ -160,15 +160,15 @@ export default function TrainJourneyPage({ params }: { params: { id: string } })
   };
 
   return (
-    <div className="space-y-4 py-2">
+    <div className="space-y-4 pt-0 sm:pt-2 pb-2">
       {/* ─── Top Bar ─── */}
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <Link
           href="/"
-          className="inline-flex items-center gap-2 rounded-xl bg-slate-200/60 dark:bg-slate-800/60 px-3.5 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-300 dark:hover:bg-slate-700 transition-colors"
+          className="inline-flex items-center justify-center rounded-xl bg-slate-200/60 dark:bg-slate-800/60 p-2 sm:px-3.5 sm:py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-300 dark:hover:bg-slate-700 transition-colors"
+          title="Back to Search"
         >
           <ArrowLeft className="h-4 w-4" />
-          Back
         </Link>
 
         <div className="flex items-center gap-2">
@@ -180,7 +180,7 @@ export default function TrainJourneyPage({ params }: { params: { id: string } })
             title="Fetch fresh live train data"
           >
             <RefreshCw className={cn('h-3.5 w-3.5', isRefetching && 'animate-spin text-rail-blue')} />
-            <span>{isRefetching ? 'Refreshing...' : 'Refresh Live Data'}</span>
+            <span>{isRefetching ? 'Refreshing' : 'Refresh'}</span>
           </button>
 
           {/* Status badge */}
@@ -224,20 +224,20 @@ export default function TrainJourneyPage({ params }: { params: { id: string } })
       )}
 
       {/* ─── Tab Selector ─── */}
-      <div className="flex items-center gap-1.5 rounded-2xl glass-panel p-1.5 shadow-glass w-fit flex-wrap">
+      <div className="grid grid-cols-3 sm:flex sm:items-center gap-1 sm:gap-1.5 rounded-2xl glass-panel p-1 sm:p-1.5 shadow-glass w-full sm:w-fit">
         {TABS.map(({ id, label, icon: Icon }) => (
           <button
             key={id}
             onClick={() => setActiveTab(id)}
             className={cn(
-              'flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-semibold transition-all duration-200 whitespace-nowrap',
+              'flex items-center justify-center gap-1 sm:gap-2 rounded-xl px-1.5 sm:px-4 py-2 text-[10.5px] xs:text-xs font-semibold transition-all duration-200 whitespace-nowrap min-w-0',
               activeTab === id
                 ? 'bg-rail-blue text-white shadow-glow'
                 : 'text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800'
             )}
           >
-            <Icon className="h-3.5 w-3.5" />
-            <span>{label}</span>
+            <Icon className="h-3.5 w-3.5 shrink-0" />
+            <span className="truncate sm:overflow-visible">{label}</span>
           </button>
         ))}
       </div>

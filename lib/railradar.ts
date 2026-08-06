@@ -43,8 +43,10 @@ async function rrFetch(url: string, options?: RequestInit): Promise<Response> {
 interface RRStation {
   code: string;
   name: string;
-  lat: number;
-  lng: number;
+  lat?: number;
+  lng?: number;
+  latitude?: number;
+  longitude?: number;
 }
 
 interface RRTrainDetail {
@@ -65,6 +67,10 @@ interface RRRouteStop {
   station?: RRStation;
   stationCode?: string;
   stationName?: string;
+  lat?: number;
+  lng?: number;
+  latitude?: number;
+  longitude?: number;
   isHalt: boolean;
   platform?: string;
   arrival?: string;
@@ -96,6 +102,8 @@ interface RRLiveResponse {
     isActualPosition: boolean;
     lat?: number;
     lng?: number;
+    latitude?: number;
+    longitude?: number;
   };
   nextHalt?: {
     stationCode: string;
@@ -105,6 +113,13 @@ interface RRLiveResponse {
   };
   delayMinutes: number;
   route: RRRouteStop[];
+}
+
+function parseCoordinate(val: any): number | undefined {
+  if (val === undefined || val === null || val === '') return undefined;
+  const num = typeof val === 'number' ? val : parseFloat(val);
+  if (isNaN(num) || num === 0) return undefined;
+  return num;
 }
 
 function normaliseStatus(status: string): LiveJourney['status'] {
@@ -120,6 +135,24 @@ function normaliseStatus(status: string): LiveJourney['status'] {
 function normaliseRouteStop(stop: RRRouteStop, stationMap: Map<string, RRStation>): Station {
   const stCode = stop.stationCode || stop.station?.code || '';
   const stInfo = stationMap.get(stCode) || stop.station;
+
+  const lat = parseCoordinate(
+    stInfo?.lat ??
+    stInfo?.latitude ??
+    stop.lat ??
+    stop.latitude ??
+    stop.station?.lat ??
+    stop.station?.latitude
+  );
+
+  const lng = parseCoordinate(
+    stInfo?.lng ??
+    stInfo?.longitude ??
+    stop.lng ??
+    stop.longitude ??
+    stop.station?.lng ??
+    stop.station?.longitude
+  );
 
   const parseTime = (val?: string): string | undefined => {
     if (!val) return undefined;
@@ -140,8 +173,8 @@ function normaliseRouteStop(stop: RRRouteStop, stationMap: Map<string, RRStation
   return {
     code: stCode,
     name: stop.stationName || stop.station?.name || stCode,
-    lat: stInfo?.lat ?? 0,
-    lng: stInfo?.lng ?? 0,
+    lat,
+    lng,
     scheduledArrival: parseTime(stop.scheduledArrival || stop.arrival) || '--:--',
     scheduledDeparture: parseTime(stop.scheduledDeparture || stop.departure) || '--:--',
     actualArrival: parseTime(stop.actualArrival) || undefined,
@@ -198,13 +231,22 @@ function normaliseLiveResponse(raw: RRLiveResponse, routeGeo?: [number, number][
 
   const stations = relevantStops.map((s) => {
     const st = normaliseRouteStop(s, stationMap);
-    // If station coordinates are missing, interpolate along routeGeo
-    if ((!st.lat || !st.lng) && routeGeo && routeGeo.length >= 2 && totalDistanceKm > 0) {
+    // If station coordinates are missing, attempt interpolation along routeGeo
+    if ((st.lat === undefined || st.lng === undefined) && routeGeo && routeGeo.length >= 2 && totalDistanceKm > 0) {
       const pct = Math.min(100, Math.max(0, (st.distanceKm / totalDistanceKm) * 100));
       const [lng, lat] = interpolatePolyline(routeGeo, pct);
-      st.lat = lat;
-      st.lng = lng;
+      const parsedLat = parseCoordinate(lat);
+      const parsedLng = parseCoordinate(lng);
+      if (parsedLat !== undefined && parsedLng !== undefined) {
+        st.lat = parsedLat;
+        st.lng = parsedLng;
+      }
     }
+
+    if (process.env.NODE_ENV === 'development' && (st.lat === undefined || st.lng === undefined)) {
+      console.warn(`[RailRadar] Missing valid coordinates for station: ${st.name} (${st.code})`);
+    }
+
     return st;
   });
 
@@ -217,27 +259,29 @@ function normaliseLiveResponse(raw: RRLiveResponse, routeGeo?: [number, number][
   const completion = totalDistanceKm > 0 ? Math.min(100, (coveredKm / totalDistanceKm) * 100) : 0;
 
   // Determine train position
-  let trainLat = raw.currentLocation?.lat;
-  let trainLng = raw.currentLocation?.lng;
+  let trainLat = parseCoordinate(raw.currentLocation?.lat ?? raw.currentLocation?.latitude);
+  let trainLng = parseCoordinate(raw.currentLocation?.lng ?? raw.currentLocation?.longitude);
 
-  if (!trainLat || !trainLng) {
+  if (trainLat === undefined || trainLng === undefined) {
     const posStation = currentStation || previousStation;
-    if (posStation && posStation.lat && posStation.lng) {
+    if (posStation && posStation.lat !== undefined && posStation.lng !== undefined) {
       trainLat = posStation.lat;
       trainLng = posStation.lng;
     } else if (routeGeo && routeGeo.length >= 2) {
       const [lng, lat] = interpolatePolyline(routeGeo, completion);
-      trainLng = lng;
-      trainLat = lat;
+      trainLng = parseCoordinate(lng);
+      trainLat = parseCoordinate(lat);
     } else {
-      trainLat = train.source.lat;
-      trainLng = train.source.lng;
+      const sourceLat = parseCoordinate(train.source?.lat ?? train.source?.latitude);
+      const sourceLng = parseCoordinate(train.source?.lng ?? train.source?.longitude);
+      trainLat = sourceLat ?? 28.643;
+      trainLng = sourceLng ?? 77.2194;
     }
   }
 
   const currentLocation: LiveJourney['currentLocation'] = {
-    lat: trainLat,
-    lng: trainLng,
+    lat: trainLat ?? 28.643,
+    lng: trainLng ?? 77.2194,
     heading: 45,
     speedKmh: Math.round(train.avgSpeed || 80),
     isMoving: raw.status === 'running',
