@@ -10,6 +10,8 @@ import { AuthPromptModal } from '@/components/auth/AuthPromptModal';
 
 const inter = Inter({ subsets: ['latin'], display: 'swap' });
 
+const themeScript = `(function(){try{var saved=localStorage.getItem('theme');if(saved==='dark'||(!saved&&window.matchMedia('(prefers-color-scheme: dark)').matches)){document.documentElement.classList.add('dark');}else{document.documentElement.classList.remove('dark');}}catch(e){}})();`;
+
 export const metadata: Metadata = {
   title: 'RailTrack — Live Indian Train Tracker',
   description:
@@ -43,22 +45,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" className="h-full" suppressHydrationWarning>
       <head>
         <meta name="mobile-web-app-capable" content="yes" />
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              (function() {
-                try {
-                  var saved = localStorage.getItem('theme');
-                  if (saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-                    document.documentElement.classList.add('dark');
-                  } else {
-                    document.documentElement.classList.remove('dark');
-                  }
-                } catch (e) {}
-              })();
-            `,
-          }}
-        />
         <link rel="preconnect" href="https://api.railradar.in" />
         <link rel="preconnect" href="https://api.maptiler.com" />
         <link rel="preconnect" href="https://api.openweathermap.org" />
@@ -66,6 +52,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body
         className={`${inter.className} min-h-full flex flex-col bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100`}
       >
+        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
         <QueryProvider>
           <Navbar />
           <main className="flex-1 px-4 pt-2 sm:pt-6 pb-6 max-w-7xl mx-auto w-full">
