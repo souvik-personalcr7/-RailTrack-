@@ -104,13 +104,13 @@ export default function HomePage() {
           transition={{ duration: 0.5 }}
           className="mx-auto max-w-3xl"
         >
-          <div className="inline-flex items-center gap-2 rounded-full border border-sky-500/30 bg-sky-500/10 px-3.5 py-1 text-xs font-semibold text-rail-blue backdrop-blur-md mb-6">
-            <Sparkles className="h-3.5 w-3.5" />
-            <span>Real-time Indian Railways Intelligence · Powered by RailRadar</span>
+          <div className="w-full sm:w-auto flex sm:inline-flex items-center justify-center gap-2 rounded-full border border-sky-500/30 bg-sky-500/10 px-3.5 py-1.5 text-xs font-semibold text-rail-blue backdrop-blur-md mb-6 mx-0 sm:mx-auto">
+            <Sparkles className="h-4 w-4 shrink-0" />
+            <span>Real-time Indian Railways Intelligence Powered by RailRadar</span>
           </div>
 
           <h1 className="text-4xl font-extrabold tracking-tight text-slate-900 dark:text-white sm:text-6xl">
-            Track Any Train in <span className="text-rail-blue">Real-time.</span>
+            Track Any Train in <span className="text-rail-blue">Real-time</span>
           </h1>
 
           <p className="mt-4 text-base sm:text-lg text-slate-600 dark:text-slate-300 max-w-xl mx-auto">
